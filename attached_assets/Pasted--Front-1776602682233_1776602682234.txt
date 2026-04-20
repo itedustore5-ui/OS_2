@@ -1,0 +1,43 @@
+Направи веб апликацију за квиз на српском језику са следећим карактеристикама:
+Технологија:
+Frontend: React + Vite + TypeScript + Tailwind CSS
+Backend: Node.js + Express API
+Baza podataka: PostgreSQL (Drizzle ORM)
+Autentifikacija: JWT tokeni, lozinke hashirane bcrypt-om
+Funkcionalnosti:
+Stranica za prijavu (korisničko ime + lozinka)
+Dashboard sa statistikom korisnika (broj pokušaja, najbolji rezultat, poslednji rezultat)
+Kviz sa pitanjima prikazanim redom — jedno po jedno, sa 4 ponuđena odgovora
+Nakon svakog odgovora prikazuje se objašnjenje zašto je odgovor tačan/netačan
+Vizuelni progress bar i mini indikatori napretka (zeleno = tačno, crveno = netačno)
+Na kraju kviza prikazuje se rezultat u procentima i status (položio/pao, granica 60%)
+Scoreboard sa rangiranjem svih korisnika (
+Admin panel sa dve kartice: upravljanje korisnicima i pregled svih rezultata
+Admin može da dodaje, menja i briše korisnike
+Svaki korisnik ima: korisničko ime, lozinku, puno ime, ulogu (admin/student), status (aktivan/neaktivan), opciju "ne ističe"
+Pitanja mogu imati slike (postavljaju se u public/images/ folder)
+1.Навигација напред/назад кроз питања у квизу
+2.Ограничење — admin подешава да ли корисник може да ради квиз само jednom или više puta
+
+Dizajn:
+Plava tema (gradient od tamno plave do indigo)
+Zaobljene kartice, moderni UI
+Responsive (mobilni + desktop)
+Podrazumevani nalozi:
+Admin: admin / Admin2024!
+Student: student1 / kviz2024
+Pitanja su u fajlu: src/data/questions.ts u formatu: id, question, options[], correctAnswer (index 0-3), explanation, opciono imageQuestion (putanja do slike)
+
+Овај промпт можеш да употребиш за нови квиз са другим питањима — само промени садржај questions.ts фајла.
+1. Навигација назад/напред:
+Дугме ← Назад — враћаш се на претходна питања да провериш одговоре и објашњења
+На већ одговорена питања не можеш мењати одговоре (само прегледаш)
+Кликом на мале квадратиће у дну можеш скочити директно на одређено питање
+2. Ограничење квиза — само 1 покушај:
+У Admin панелу при додавању/измени корисника постоји нова опција "Само 1x квиз"
+Ако је укључена, корисник добија поруку да је искористио свој покушај и не може поново да ради квиз
+Ако је искључена — може радити квиз неограничено пута
+Ажурирани промпт за следећи пројекат — додај ово:
+Navigacija kroz pitanja napred/nazad — već odgovorena pitanja se prikazuju u read-only stanju sa objašnjenjem
+Svaki korisnik ima opciju Samo 1x kviz — ako je uključena, ne može ponovo da radi kviz
+treba dodati i da se sifre na admin panelu vide i da ima ponudjenu djavu  svakom trenutku ili da pcne iz pocetka

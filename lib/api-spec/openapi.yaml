@@ -1,0 +1,397 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+  - name: auth
+  - name: quiz
+  - name: admin
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUser"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [quiz]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+  /questions:
+    get:
+      operationId: listQuestions
+      tags: [quiz]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Quiz questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Question"
+  /attempts:
+    post:
+      operationId: submitAttempt
+      tags: [quiz]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitAttemptRequest"
+      responses:
+        "200":
+          description: Attempt saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttemptResult"
+  /scoreboard:
+    get:
+      operationId: getScoreboard
+      tags: [quiz]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ranked users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScoreboardEntry"
+  /admin/users:
+    get:
+      operationId: listUsers
+      tags: [admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+    post:
+      operationId: createUser
+      tags: [admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "200":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+  /admin/users/{id}:
+    put:
+      operationId: updateUser
+      tags: [admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+    delete:
+      operationId: deleteUser
+      tags: [admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Delete result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+  /admin/results:
+    get:
+      operationId: listResults
+      tags: [admin]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All quiz results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminResult"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/AuthUser"
+      required: [token, user]
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [admin, student]
+        active:
+          type: boolean
+        neverExpires:
+          type: boolean
+        quizOnce:
+          type: boolean
+      required: [id, username, fullName, role, active, neverExpires, quizOnce]
+    AdminUser:
+      allOf:
+        - $ref: "#/components/schemas/AuthUser"
+        - type: object
+          properties:
+            password:
+              type: string
+            createdAt:
+              type: string
+          required: [password, createdAt]
+    UserInput:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        fullName:
+          type: string
+        role:
+          type: string
+          enum: [admin, student]
+        active:
+          type: boolean
+        neverExpires:
+          type: boolean
+        quizOnce:
+          type: boolean
+      required: [username, password, fullName, role, active, neverExpires, quizOnce]
+    DashboardStats:
+      type: object
+      properties:
+        attemptsCount:
+          type: integer
+        bestScore:
+          type: number
+        lastScore:
+          type: number
+          nullable: true
+        canTakeQuiz:
+          type: boolean
+        lockReason:
+          type: string
+          nullable: true
+      required: [attemptsCount, bestScore, lastScore, canTakeQuiz, lockReason]
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctAnswer:
+          type: integer
+        explanation:
+          type: string
+        imageQuestion:
+          type: string
+          nullable: true
+      required: [id, question, options, correctAnswer, explanation, imageQuestion]
+    SubmitAnswer:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        selectedAnswer:
+          type: integer
+      required: [questionId, selectedAnswer]
+    SubmitAttemptRequest:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubmitAnswer"
+      required: [answers]
+    AttemptResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        score:
+          type: integer
+        total:
+          type: integer
+        percentage:
+          type: number
+        passed:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, score, total, percentage, passed, createdAt]
+    ScoreboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        username:
+          type: string
+        fullName:
+          type: string
+        bestScore:
+          type: number
+        attemptsCount:
+          type: integer
+        lastScore:
+          type: number
+          nullable: true
+      required: [rank, username, fullName, bestScore, attemptsCount, lastScore]
+    AdminResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        fullName:
+          type: string
+        score:
+          type: integer
+        total:
+          type: integer
+        percentage:
+          type: number
+        passed:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, userId, username, fullName, score, total, percentage, passed, createdAt]
