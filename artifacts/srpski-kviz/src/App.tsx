@@ -177,17 +177,28 @@ function useAuth() {
   return { user, setUser, loading, refresh };
 }
 
+// ── SHELL (header) ──────────────────────────────────────────────────────────
+// MOBILNE IZMENE:
+// - py-2 px-3 na mobilnom, py-4 px-4 na desktopu
+// - naslov manji na mobilnom (text-sm md:text-xl)
+// - nav dugmad sakrivena na mobilnom, vidljiva na md+
+// - hamburger meni za mobilni
 function Shell({ user, onLogout, children }: { user: AuthUser; onLogout: () => void; children: React.ReactNode }) {
   const [, navigate] = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#1d4ed8_0,#111827_36%,#312e81_100%)] text-white">
       <header className="sticky top-0 z-30 border-b border-white/10 bg-slate-950/55 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-          <button onClick={() => navigate("/dashboard")} className="text-left">
-            <p className="text-xs uppercase tracking-[0.35em] text-blue-200">Матурски квиз</p>
-            <h1 className="text-xl font-black">Електротехничар рачунара</h1>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 md:px-4 md:py-4">
+          {/* Logo */}
+          <button onClick={() => { navigate("/dashboard"); setMenuOpen(false); }} className="text-left">
+            <p className="text-xs uppercase tracking-[0.35em] text-blue-200 hidden sm:block">Матурски квиз</p>
+            <h1 className="text-sm font-black md:text-xl">Електротехничар рачунара</h1>
           </button>
-          <nav className="flex flex-wrap items-center gap-2 text-sm">
+
+          {/* Desktop nav */}
+          <nav className="hidden md:flex flex-wrap items-center gap-2 text-sm">
             <button className="nav-btn" onClick={() => navigate("/dashboard")}>Dashboard</button>
             <button className="nav-btn" onClick={() => navigate("/quiz")}>Квиз</button>
             <button className="nav-btn" onClick={() => navigate("/scoreboard")}>Scoreboard</button>
@@ -195,9 +206,35 @@ function Shell({ user, onLogout, children }: { user: AuthUser; onLogout: () => v
             <span className="rounded-full border border-white/15 px-3 py-2 text-blue-100">{user.fullName}</span>
             <button className="rounded-full bg-white px-4 py-2 font-bold text-slate-900" onClick={onLogout}>Одјава</button>
           </nav>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden flex flex-col gap-1.5 p-2 rounded-xl border border-white/15"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="Мени"
+          >
+            <span className={`block h-0.5 w-5 bg-white transition-transform ${menuOpen ? "rotate-45 translate-y-2" : ""}`} />
+            <span className={`block h-0.5 w-5 bg-white transition-opacity ${menuOpen ? "opacity-0" : ""}`} />
+            <span className={`block h-0.5 w-5 bg-white transition-transform ${menuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+          </button>
         </div>
+
+        {/* Mobile dropdown menu */}
+        {menuOpen && (
+          <div className="md:hidden border-t border-white/10 bg-slate-950/80 backdrop-blur-xl px-3 py-3 flex flex-col gap-2">
+            <button className="nav-btn text-left w-full" onClick={() => { navigate("/dashboard"); setMenuOpen(false); }}>Dashboard</button>
+            <button className="nav-btn text-left w-full" onClick={() => { navigate("/quiz"); setMenuOpen(false); }}>Квиз</button>
+            <button className="nav-btn text-left w-full" onClick={() => { navigate("/scoreboard"); setMenuOpen(false); }}>Scoreboard</button>
+            {user.role === "admin" && <button className="nav-btn text-left w-full" onClick={() => { navigate("/admin"); setMenuOpen(false); }}>Admin</button>}
+            <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-1">
+              <span className="text-sm text-blue-100">{user.fullName}</span>
+              <button className="rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-900" onClick={onLogout}>Одјава</button>
+            </div>
+          </div>
+        )}
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+
+      <main className="mx-auto max-w-7xl px-3 py-4 md:px-4 md:py-8">{children}</main>
     </div>
   );
 }
@@ -263,24 +300,24 @@ function Dashboard({ user }: { user: AuthUser }) {
 
   return (
     <section>
-      <div className="mb-8 rounded-[2rem] border border-white/10 bg-white/10 p-8 shadow-xl backdrop-blur">
+      <div className="mb-6 rounded-[2rem] border border-white/10 bg-white/10 p-6 md:p-8 shadow-xl backdrop-blur">
         <p className="text-blue-200">Добро дошли, {user.fullName}</p>
-        <h2 className="mt-2 text-4xl font-black">Ваш dashboard</h2>
+        <h2 className="mt-2 text-3xl md:text-4xl font-black">Ваш dashboard</h2>
         {error && <p className="mt-4 text-red-200">{error}</p>}
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Stat title="Број покушаја" value={stats?.attemptsCount ?? "—"} />
-        <Stat title="Најбољи резултат" value={`${stats?.bestScore ?? 0}%`} />
-        <Stat title="Последњи резултат" value={stats?.lastScore == null ? "—" : `${stats.lastScore}%`} />
+      <div className="grid gap-3 grid-cols-3 md:gap-4">
+        <Stat title="Покушаји" value={stats?.attemptsCount ?? "—"} />
+        <Stat title="Најбољи" value={`${stats?.bestScore ?? 0}%`} />
+        <Stat title="Последњи" value={stats?.lastScore == null ? "—" : `${stats.lastScore}%`} />
       </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="card">
-          <h3 className="text-2xl font-black">Квиз</h3>
-          <p className="mt-2 text-blue-100">Граница за пролаз је 60%. Можете се враћати на претходна питања, али већ одговорена питања остају закључана.</p>
+          <h3 className="text-xl md:text-2xl font-black">Квиз</h3>
+          <p className="mt-2 text-sm md:text-base text-blue-100">Граница за пролаз је 60%. Можете се враћати на претходна питања, али већ одговорена питања остају закључана.</p>
           {stats?.canTakeQuiz ? (
-            <button className="primary mt-6" onClick={() => navigate("/quiz")}>Почни квиз</button>
+            <button className="primary mt-4 md:mt-6 w-full md:w-auto" onClick={() => navigate("/quiz")}>Почни квиз</button>
           ) : (
-            <p className="mt-6 rounded-2xl border border-amber-300/30 bg-amber-400/15 p-4 text-amber-100">{stats?.lockReason}</p>
+            <p className="mt-4 rounded-2xl border border-amber-300/30 bg-amber-400/15 p-4 text-amber-100 text-sm">{stats?.lockReason}</p>
           )}
         </div>
         <div className="card space-y-3">
@@ -294,9 +331,9 @@ function Dashboard({ user }: { user: AuthUser }) {
 
 function Stat({ title, value }: { title: string; value: string | number }) {
   return (
-    <div className="card">
-      <p className="text-sm text-blue-200">{title}</p>
-      <p className="mt-3 text-4xl font-black">{value}</p>
+    <div className="card p-4 md:p-6">
+      <p className="text-xs md:text-sm text-blue-200">{title}</p>
+      <p className="mt-2 text-2xl md:text-4xl font-black">{value}</p>
     </div>
   );
 }
@@ -311,12 +348,12 @@ function SingleUI({ question, shuffleMap, locked, onCommit }: {
   const displayOptions = sm.map((origIdx) => (question.options ?? [])[origIdx]);
 
   return (
-    <div className="mt-6 grid gap-3">
+    <div className="mt-4 grid gap-2 md:gap-3">
       {displayOptions.map((option, si) => {
         const origIdx = sm[si];
         const isSelected = locked !== undefined && Number(locked) === origIdx;
         const isCorrect = origIdx === question.correctAnswer;
-        let cls = "answer";
+        let cls = "answer text-sm md:text-base";
         if (locked !== undefined && isCorrect) cls += " correct";
         if (locked !== undefined && isSelected && !isCorrect) cls += " wrong";
         return (
@@ -355,14 +392,14 @@ function MultiUI({ question, shuffleMap, locked, onCommit }: {
   const lockedOrigIndices = locked !== undefined ? locked.split(",").map(Number) : null;
 
   return (
-    <div className="mt-6 grid gap-3">
+    <div className="mt-4 grid gap-2 md:gap-3">
       <p className="text-sm text-blue-200 -mb-1">Изаберите све тачне одговоре:</p>
       {displayOptions.map((option, si) => {
         const origIdx = sm[si];
         const isSelectedNow = sel.has(si);
         const isLockedSelected = lockedOrigIndices?.includes(origIdx) ?? false;
         const isCorrect = (question.correctAnswers ?? []).includes(origIdx);
-        let cls = "answer text-left flex items-start gap-3";
+        let cls = "answer text-left flex items-start gap-3 text-sm md:text-base";
         if (locked !== undefined && isCorrect) cls += " correct";
         else if (locked !== undefined && isLockedSelected && !isCorrect) cls += " wrong";
         else if (locked === undefined && isSelectedNow) cls += " selected";
@@ -376,7 +413,7 @@ function MultiUI({ question, shuffleMap, locked, onCommit }: {
         );
       })}
       {locked === undefined && (
-        <button className="primary mt-2" disabled={sel.size === 0} onClick={commit}>Потврди одговор</button>
+        <button className="primary mt-2 w-full md:w-auto" disabled={sel.size === 0} onClick={commit}>Потврди одговор</button>
       )}
     </div>
   );
@@ -393,10 +430,10 @@ function FillUI({ question, locked, onCommit }: {
   const commit = () => { if (text.trim()) onCommit(text.trim()); };
 
   return (
-    <div className="mt-6">
+    <div className="mt-4">
       {question.hint && <p className="mb-3 text-sm italic text-blue-300">Напомена: {question.hint}</p>}
       <input
-        className="input text-xl"
+        className="input text-base md:text-xl"
         placeholder="Упишите одговор..."
         value={locked !== undefined ? locked : text}
         disabled={locked !== undefined}
@@ -404,10 +441,10 @@ function FillUI({ question, locked, onCommit }: {
         onKeyDown={(e) => { if (e.key === "Enter") commit(); }}
       />
       {locked === undefined && (
-        <button className="primary mt-3" disabled={text.trim().length === 0} onClick={commit}>Потврди одговор</button>
+        <button className="primary mt-3 w-full md:w-auto" disabled={text.trim().length === 0} onClick={commit}>Потврди одговор</button>
       )}
       {locked !== undefined && (
-        <p className={`mt-3 font-black ${isAnswerCorrect(question, locked) ? "text-emerald-200" : "text-red-200"}`}>
+        <p className={`mt-3 font-black text-sm md:text-base ${isAnswerCorrect(question, locked) ? "text-emerald-200" : "text-red-200"}`}>
           {isAnswerCorrect(question, locked) ? "Тачно" : `Нетачно — тачан одговор: ${question.correctText}`}
         </p>
       )}
@@ -451,16 +488,16 @@ function MatchUI({ question, locked, onCommit }: {
   const allPaired = Object.keys(locked !== undefined ? lockedPairs : pairs).length >= left.length;
 
   return (
-    <div className="mt-6">
-      <p className="mb-4 text-sm text-blue-200">Кликните на ставку лево, затим на одговарајућу ставку десно:</p>
-      <div className="grid grid-cols-2 gap-4">
+    <div className="mt-4">
+      <p className="mb-3 text-sm text-blue-200">Кликните на ставку лево, затим на одговарајућу ставку десно:</p>
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
         <div className="grid gap-2">
           {left.map((item, li) => {
             const paired = locked !== undefined ? lockedPairs[li] : pairs[li];
             const isActive = selectedLeft === li;
             const isCorrect = locked !== undefined && (question.correctPairs ?? [])[li] === lockedPairs[li];
             const isWrong = locked !== undefined && (question.correctPairs ?? [])[li] !== lockedPairs[li];
-            let cls = "answer text-left text-sm cursor-pointer";
+            let cls = "answer text-left text-xs md:text-sm cursor-pointer";
             if (isActive) cls += " ring-2 ring-white";
             if (isCorrect) cls += " correct";
             else if (isWrong) cls += " wrong";
@@ -468,7 +505,7 @@ function MatchUI({ question, locked, onCommit }: {
             return (
               <button key={li} className={cls} onClick={() => clickLeft(li)} disabled={locked !== undefined}>
                 {item}
-                {paired !== undefined && <span className="ml-2 opacity-60">→ {right[paired]}</span>}
+                {paired !== undefined && <span className="ml-1 opacity-60 text-xs">→ {right[paired]}</span>}
               </button>
             );
           })}
@@ -478,7 +515,7 @@ function MatchUI({ question, locked, onCommit }: {
             const usedByLeft = locked !== undefined
               ? Object.entries(lockedPairs).find(([, v]) => v === ri)?.[0]
               : Object.entries(pairs).find(([, v]) => v === ri)?.[0];
-            let cls = "answer text-left text-sm cursor-pointer";
+            let cls = "answer text-left text-xs md:text-sm cursor-pointer";
             if (locked !== undefined) {
               const li = usedByLeft !== undefined ? Number(usedByLeft) : -1;
               if (li >= 0) {
@@ -495,7 +532,7 @@ function MatchUI({ question, locked, onCommit }: {
             );
           })}
           {locked !== undefined && (
-            <div className="mt-2 text-sm text-blue-200">
+            <div className="mt-2 text-xs md:text-sm text-blue-200">
               <p className="font-black">Тачни парови:</p>
               {left.map((lItem, li) => (
                 <p key={li}>{lItem} → {right[(question.correctPairs ?? [])[li]]}</p>
@@ -505,7 +542,7 @@ function MatchUI({ question, locked, onCommit }: {
         </div>
       </div>
       {locked === undefined && (
-        <button className="primary mt-4" disabled={!allPaired} onClick={commit}>Потврди одговор</button>
+        <button className="primary mt-4 w-full md:w-auto" disabled={!allPaired} onClick={commit}>Потврди одговор</button>
       )}
     </div>
   );
@@ -539,7 +576,7 @@ function OrderUI({ question, locked, onCommit }: {
     : Array.from({ length: maxPos }, (_, i) => i + 1);
 
   return (
-    <div className="mt-6 grid gap-3">
+    <div className="mt-4 grid gap-2 md:gap-3">
       <p className="text-sm text-blue-200 -mb-1">
         {hasSkips ? "Додели редни број (1, 2, 3...) или X (нула) за акције које не треба предузети:" : "Додели редни број свакој ставци (1 = прво):"}
       </p>
@@ -549,9 +586,9 @@ function OrderUI({ question, locked, onCommit }: {
         const isCorrect = locked !== undefined && pos === correctPos;
         const isWrong = locked !== undefined && pos !== correctPos;
         return (
-          <div key={i} className={`flex items-center gap-3 rounded-2xl border p-3 ${isCorrect ? "border-emerald-400/40 bg-emerald-500/15" : isWrong ? "border-red-400/40 bg-red-500/15" : "border-white/10 bg-white/5"}`}>
+          <div key={i} className={`flex items-center gap-2 md:gap-3 rounded-2xl border p-2 md:p-3 ${isCorrect ? "border-emerald-400/40 bg-emerald-500/15" : isWrong ? "border-red-400/40 bg-red-500/15" : "border-white/10 bg-white/5"}`}>
             <select
-              className="rounded-xl border border-white/20 bg-slate-800 px-3 py-2 text-white"
+              className="rounded-xl border border-white/20 bg-slate-800 px-2 py-1.5 md:px-3 md:py-2 text-white text-sm"
               value={pos ?? ""}
               disabled={locked !== undefined}
               onChange={(e) => setPositions((prev) => ({ ...prev, [i]: Number(e.target.value) }))}
@@ -561,18 +598,24 @@ function OrderUI({ question, locked, onCommit }: {
                 <option key={v} value={v}>{v === 0 ? "X" : v}</option>
               ))}
             </select>
-            <span className="flex-1 text-sm">{item}</span>
+            <span className="flex-1 text-xs md:text-sm">{item}</span>
             {isWrong && <span className="text-xs text-red-300">тачно: {correctPos === 0 ? "X" : correctPos}</span>}
           </div>
         );
       })}
       {locked === undefined && (
-        <button className="primary mt-2" disabled={!allFilled} onClick={commit}>Потврди одговор</button>
+        <button className="primary mt-2 w-full md:w-auto" disabled={!allFilled} onClick={commit}>Потврди одговор</button>
       )}
     </div>
   );
 }
 
+// ── QUIZ PAGE ───────────────────────────────────────────────────────────────
+// MOBILNE IZMENE:
+// - dugmad napred/nazad sticky na dnu ekrana
+// - navigacioni kvadratici manji na mobilnom (h-3 w-3)
+// - manji padding i fontovi na mobilnom
+// - progress bar tanji
 function QuizPage() {
   const [, navigate] = useLocation();
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -641,12 +684,12 @@ function QuizPage() {
     return (
       <div className="mx-auto max-w-3xl card text-center">
         <p className="text-blue-200">Квиз је завршен</p>
-        <h2 className="mt-2 text-6xl font-black">{result.percentage}%</h2>
-        <p className={`mt-4 text-2xl font-black ${result.passed ? "text-emerald-200" : "text-red-200"}`}>
+        <h2 className="mt-2 text-5xl md:text-6xl font-black">{result.percentage}%</h2>
+        <p className={`mt-4 text-xl md:text-2xl font-black ${result.passed ? "text-emerald-200" : "text-red-200"}`}>
           {result.passed ? "Положио/ла" : "Пао/ла"}
         </p>
-        <p className="mt-2 text-blue-100">Тачно {result.score} од {result.total} питања.</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <p className="mt-2 text-blue-100 text-sm md:text-base">Тачно {result.score} од {result.total} питања.</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button className="secondary" onClick={() => navigate("/dashboard")}>Dashboard</button>
           <button className="secondary" onClick={() => navigate("/scoreboard")}>Scoreboard</button>
           <button className="primary" onClick={restart}>Почни из почетка</button>
@@ -661,22 +704,25 @@ function QuizPage() {
   const progress = Math.round((answeredCount / Math.max(questions.length, 1)) * 100);
 
   return (
-    <section className="mx-auto max-w-5xl">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <section className="mx-auto max-w-5xl pb-24 md:pb-0">
+      {/* Header kviza */}
+      <div className="mb-3 flex items-center justify-between gap-2">
         <div>
-          <p className="text-blue-200">Питање {current + 1} од {questions.length}</p>
-          <h2 className="text-3xl font-black">Квиз</h2>
+          <p className="text-xs md:text-sm text-blue-200">Питање {current + 1} од {questions.length}</p>
+          <h2 className="text-xl md:text-3xl font-black">Квиз</h2>
         </div>
-        <button className="secondary" onClick={restart}>Почни из почетка</button>
+        <button className="secondary text-sm py-1.5 px-3" onClick={restart}>Из почетка</button>
       </div>
 
-      <div className="mb-6 h-3 overflow-hidden rounded-full bg-white/15">
-        <div className="h-full rounded-full bg-gradient-to-r from-sky-300 to-emerald-300" style={{ width: `${progress}%` }} />
+      {/* Progress bar */}
+      <div className="mb-4 h-2 md:h-3 overflow-hidden rounded-full bg-white/15">
+        <div className="h-full rounded-full bg-gradient-to-r from-sky-300 to-emerald-300 transition-all" style={{ width: `${progress}%` }} />
       </div>
 
-      <div className="card">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-black text-blue-200">#{question.id}</span>
+      {/* Kartica sa pitanjem */}
+      <div className="card p-4 md:p-6">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <span className="text-xs md:text-sm font-black text-blue-200">#{question.id}</span>
           <span className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-blue-300">
             {question.type === "single" ? "Један одговор" :
               question.type === "multi" ? "Вишеструки одговори" :
@@ -689,12 +735,12 @@ function QuizPage() {
           <img
             src={question.imageQuestion}
             alt={`Питање ${question.id}`}
-            className="mb-5 max-h-80 w-full rounded-3xl border border-white/10 object-contain"
+            className="mb-4 max-h-48 md:max-h-80 w-full rounded-3xl border border-white/10 object-contain"
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         )}
 
-        <h3 className="text-xl font-black leading-relaxed md:text-2xl">{question.question}</h3>
+        <h3 className="text-base font-black leading-relaxed md:text-2xl">{question.question}</h3>
 
         {question.type === "single" && (
           <SingleUI question={question} shuffleMap={shuffleMap} locked={locked} onCommit={commit} />
@@ -713,43 +759,60 @@ function QuizPage() {
         )}
 
         {locked !== undefined && question.type !== "fill" && question.type !== "match" && (
-          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-950/35 p-5">
-            <p className={`font-black ${isAnswerCorrect(question, locked) ? "text-emerald-200" : "text-red-200"}`}>
+          <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/35 p-4">
+            <p className={`font-black text-sm md:text-base ${isAnswerCorrect(question, locked) ? "text-emerald-200" : "text-red-200"}`}>
               {isAnswerCorrect(question, locked) ? "Тачно!" : "Нетачно"}
             </p>
-            <p className="mt-2 text-blue-50">{question.explanation}</p>
+            <p className="mt-2 text-sm text-blue-50">{question.explanation}</p>
           </div>
         )}
         {locked !== undefined && (question.type === "match" || question.type === "fill") && (
-          <div className="mt-6 rounded-3xl border border-white/10 bg-slate-950/35 p-5">
+          <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/35 p-4">
             <p className="text-sm text-blue-100">{question.explanation}</p>
           </div>
         )}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <button className="secondary" disabled={current === 0} onClick={() => setCurrent((v) => Math.max(0, v - 1))}>← Назад</button>
-        <div className="flex flex-wrap justify-center gap-1.5">
-          {questions.map((item, index) => {
-            const ans = answers[item.id];
-            const state = ans === undefined ? "bg-white/20" : isAnswerCorrect(item, ans) ? "bg-emerald-400" : "bg-red-400";
-            return (
-              <button
-                key={item.id}
-                className={`h-4 w-4 rounded ${state} ${index === current ? "ring-2 ring-white" : ""}`}
-                title={`Питање ${item.id}`}
-                onClick={() => setCurrent(index)}
-              />
-            );
-          })}
+      {/* Navigacija — sticky na mobilnom, normalna na desktopu */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 md:static md:z-auto md:mt-5 bg-slate-950/90 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none border-t border-white/10 md:border-0 px-3 py-3 md:px-0 md:py-0">
+        <div className="mx-auto max-w-5xl flex items-center justify-between gap-2">
+          <button
+            className="secondary py-2 px-4 text-sm"
+            disabled={current === 0}
+            onClick={() => setCurrent((v) => Math.max(0, v - 1))}
+          >
+            ← Назад
+          </button>
+
+          {/* Navigacioni kvadratici — manji na mobilnom */}
+          <div className="flex flex-wrap justify-center gap-1">
+            {questions.map((item, index) => {
+              const ans = answers[item.id];
+              const state = ans === undefined ? "bg-white/20" : isAnswerCorrect(item, ans) ? "bg-emerald-400" : "bg-red-400";
+              return (
+                <button
+                  key={item.id}
+                  className={`h-3 w-3 md:h-4 md:w-4 rounded ${state} ${index === current ? "ring-2 ring-white" : ""}`}
+                  title={`Питање ${item.id}`}
+                  onClick={() => setCurrent(index)}
+                />
+              );
+            })}
+          </div>
+
+          {current < questions.length - 1 ? (
+            <button className="primary py-2 px-4 text-sm" onClick={() => setCurrent((v) => Math.min(questions.length - 1, v + 1))}>
+              Напред →
+            </button>
+          ) : (
+            <button className="primary py-2 px-4 text-sm" disabled={answeredCount !== questions.length} onClick={submit}>
+              Заврши
+            </button>
+          )}
         </div>
-        {current < questions.length - 1 ? (
-          <button className="primary" onClick={() => setCurrent((v) => Math.min(questions.length - 1, v + 1))}>Напред →</button>
-        ) : (
-          <button className="primary" disabled={answeredCount !== questions.length} onClick={submit}>Заврши квиз</button>
-        )}
       </div>
-      {error && <p className="mt-4 rounded-2xl bg-red-500/20 p-4 text-red-100">{error}</p>}
+
+      {error && <p className="mt-4 rounded-2xl bg-red-500/20 p-4 text-red-100 text-sm">{error}</p>}
     </section>
   );
 }
@@ -759,20 +822,20 @@ function Scoreboard() {
   useEffect(() => { api<ScoreboardEntry[]>("/scoreboard").then(setRows).catch(() => setRows([])); }, []);
   return (
     <div className="card">
-      <h2 className="text-3xl font-black">Scoreboard</h2>
+      <h2 className="text-2xl md:text-3xl font-black">Scoreboard</h2>
       <div className="mt-6 overflow-x-auto">
-        <table className="w-full min-w-[700px] text-left">
+        <table className="w-full min-w-[500px] text-left text-sm md:text-base">
           <thead className="text-blue-200">
-            <tr><th>Ранг</th><th>Име</th><th>Корисник</th><th>Најбољи</th><th>Последњи</th><th>Покушаји</th></tr>
+            <tr><th>Ранг</th><th>Ime</th><th className="hidden sm:table-cell">Корисник</th><th>Најбољи</th><th className="hidden sm:table-cell">Последњи</th><th>Покушаји</th></tr>
           </thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row.username} className="border-t border-white/10">
-                <td className="py-4 font-black">{row.rank}</td>
+                <td className="py-3 font-black">{row.rank}</td>
                 <td>{row.fullName}</td>
-                <td>{row.username}</td>
+                <td className="hidden sm:table-cell">{row.username}</td>
                 <td>{row.bestScore}%</td>
-                <td>{row.lastScore ?? "—"}</td>
+                <td className="hidden sm:table-cell">{row.lastScore ?? "—"}</td>
                 <td>{row.attemptsCount}</td>
               </tr>
             ))}
@@ -814,8 +877,8 @@ function AdminPanel() {
   return (
     <div className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
       <form onSubmit={save} className="card">
-        <h2 className="text-2xl font-black">{editing ? "Измена корисника" : "Нови корисник"}</h2>
-        <input className="input" placeholder="Корисничко име" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        <h2 className="text-xl md:text-2xl font-black">{editing ? "Измена корисника" : "Нови корисник"}</h2>
+        <input className="input" placeholder="Корисничко ime" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
         <input className="input" placeholder="Лозинка" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         <input className="input" placeholder="Пуно ime" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
         <select className="input" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as UserInput["role"] })}>
