@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", router);
 
 // Servira frontend
-const frontendDist = path.resolve(__dirname, "../../../srpski-kviz/dist/public");
+const frontendDist = path.resolve(__dirname, "../../../artifacts/srpski-kviz/dist/public");
 app.use(express.static(frontendDist));
 app.get("/{*path}", (_req, res) => {
   res.sendFile(path.join(frontendDist, "index.html"));
